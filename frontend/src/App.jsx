@@ -17,6 +17,7 @@ import Interview from './pages/Interview';
 import MyProject from './pages/MyProject';
 import Resources from './pages/Resources';
 import Notes from './pages/Notes';
+import NotFound from './pages/NotFound';
 
 // Lazy load heavy components to improve initial paint performance
 const CodeLab = lazy(() => import('./pages/CodeLab'));
@@ -116,7 +117,7 @@ const AnimatedRoutes = () => {
         />
         <Route path="/resources" element={<PageWrapper><Resources /></PageWrapper>} />
         <Route path="/notes" element={<PageWrapper><Notes /></PageWrapper>} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
   );

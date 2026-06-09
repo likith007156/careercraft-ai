@@ -2,18 +2,75 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="CareerCraft AI - A personalized career preparation platform to master Python, SQL, Aptitude, and Communication Mock Interviews for IT companies." />
-    <title>CareerCraft AI - Personal Career Preparation Platform</title>
-    <!-- Google Fonts: Inter and Source Serif 4 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700&display=swap" rel="stylesheet">
+
+    <!-- Primary SEO -->
+    <title>CareerCraft AI — Personal Interview Prep</title>
+    <meta name="title" content="CareerCraft AI — Personal Interview Prep" />
+    <meta name="description" content="AI-powered career preparation platform for Cognizant, TCS, Infosys and top IT companies. Quiz, mock interviews, code practice." />
+    <meta name="theme-color" content="#17191c" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://careercraft-ai-flax.vercel.app/" />
+    <meta property="og:title" content="CareerCraft AI — Personal Interview Prep" />
+    <meta property="og:description" content="AI-powered personal career prep platform for top IT companies." />
+    <meta property="og:image" content="/og-image.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CareerCraft AI — Personal Interview Prep" />
+    <meta name="twitter:description" content="AI-powered personal career prep platform for top IT companies." />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700&display=swap" rel="stylesheet" />
   </head>
   <body class="bg-background text-text-primary transition-colors duration-300">
+
+    <!-- App loader — shown before React hydrates -->
+    <div id="app-loader" style="position:fixed;inset:0;background:#f7f7f8;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999;font-family:serif;">
+      <div style="font-size:26px;color:#17191c;letter-spacing:-0.5px;font-weight:700;">
+        CareerCraft<span style="color:#5d2a1a;">AI</span>
+      </div>
+      <div style="width:120px;height:2px;background:#e8e8ea;border-radius:9999px;overflow:hidden;">
+        <div id="loader-bar" style="height:100%;background:#5d2a1a;width:0%;border-radius:9999px;transition:width 0.3s ease;"></div>
+      </div>
+      <div style="font-size:11px;color:#a3a6af;font-family:Inter,sans-serif;letter-spacing:0.05em;">Preparing your career engine...</div>
+    </div>
+
+    <script>
+      var w = 0;
+      var bar = document.getElementById('loader-bar');
+      var iv = setInterval(function() {
+        w = Math.min(w + Math.random() * 15, 90);
+        bar.style.width = w + '%';
+      }, 200);
+      window.addEventListener('load', function() {
+        clearInterval(iv);
+        bar.style.width = '100%';
+        setTimeout(function() {
+          var loader = document.getElementById('app-loader');
+          if (loader) {
+            loader.style.opacity = '0';
+            loader.style.transition = 'opacity 0.3s ease';
+            setTimeout(function() { if (loader) loader.remove(); }, 300);
+          }
+        }, 200);
+      });
+    </script>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-
