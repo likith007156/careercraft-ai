@@ -34,7 +34,10 @@ except Exception as e:
 
 app = Flask(__name__)
 # Configure CORS to restrict allowed origins instead of wildcard '*'
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "https://careercraft-ai-flax.vercel.app,http://localhost:5173,http://127.0.0.1:5173"
+).split(",")
 CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 # Initialize rate limiting
