@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.MODE === 'production'
-  ? 'https://careercraft-ai-7l9t.onrender.com'
+  ? ''  // same-origin proxy via Vercel rewrites — no CORS
   : 'http://localhost:5000';
 
 const api = axios.create({
