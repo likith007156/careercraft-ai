@@ -4,6 +4,7 @@ from backend.models.learning_tracker import add_xp
 from backend.services.claude_service import analyze_communication, get_claude_response
 import datetime
 import random
+import json
 
 communication_bp = Blueprint("communication", __name__)
 
