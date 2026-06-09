@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
 
 ChartJS.register(
   RadialLinearScale, PointElement, LineElement, 
@@ -188,10 +189,20 @@ const Assessment = () => {
       
       {/* STEP 1: WELCOME SCREEN */}
       {step === 1 && (
-        <div className="bg-background-card border border-black/5 dark:border-white/5 p-8 md:p-12 rounded-card max-w-xl text-center shadow-card space-y-6">
-          <div className="bg-primary/10 w-16 h-16 rounded-card flex items-center justify-center mx-auto text-primary glow-primary">
+        <motion.div
+          initial={{ opacity: 0, y: 28, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="bg-background-card border border-black/5 dark:border-white/5 p-8 md:p-12 rounded-card max-w-xl text-center shadow-card space-y-6"
+        >
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.15, duration: 0.5, type: 'spring', stiffness: 180 }}
+            className="bg-primary/10 w-16 h-16 rounded-card flex items-center justify-center mx-auto text-primary glow-primary"
+          >
             <Sparkles size={32} />
-          </div>
+          </motion.div>
           <div className="space-y-2">
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-text-primary tracking-tight leading-tight">
               Welcome to CareerCraft AI
@@ -208,14 +219,15 @@ const Assessment = () => {
           </div>
           
           {/* Primary CTA (rounded-button, Ink bg) */}
-          <button
+          <motion.button
+            whileTap={{ scale: 0.97 }}
             onClick={() => setStep(2)}
-            className="w-full bg-primary text-white py-4 rounded-button font-bold hover:bg-primary/95 flex items-center justify-center space-x-2 shadow-card transition-transform active:scale-[0.98]"
+            className="w-full bg-primary text-white py-4 rounded-button font-bold hover:bg-primary/95 flex items-center justify-center space-x-2 shadow-card"
           >
             <Play size={18} className="fill-white" />
             <span>Let's Find Out Where You Stand</span>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       )}
 
       {/* STEP 2: QUESTIONS FLOW */}
@@ -230,24 +242,35 @@ const Assessment = () => {
           </div>
 
           <div className="w-full bg-black/10 dark:bg-white/10 rounded-full h-1.5 overflow-hidden">
-            <div 
-              className="bg-primary h-full transition-all duration-300"
-              style={{ width: `${((currentQIndex + 1) / QUESTIONS.length) * 100}%` }}
-            ></div>
+            <motion.div 
+              className="bg-primary h-full"
+              animate={{ width: `${((currentQIndex + 1) / QUESTIONS.length) * 100}%` }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            />
           </div>
 
-          <div className="space-y-4">
-            <span className="text-[10px] uppercase font-extrabold text-primary px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-badge">
-              {QUESTIONS[currentQIndex].topic}
-            </span>
-            <h2 className="text-xl font-serif font-bold text-text-primary leading-relaxed">
-              {QUESTIONS[currentQIndex].text}
-            </h2>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentQIndex}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="space-y-4"
+            >
+              <span className="text-[10px] uppercase font-extrabold text-primary px-2.5 py-1 bg-primary/10 border border-primary/20 rounded-badge">
+                {QUESTIONS[currentQIndex].topic}
+              </span>
+              <h2 className="text-xl font-serif font-bold text-text-primary leading-relaxed">
+                {QUESTIONS[currentQIndex].text}
+              </h2>
+            </motion.div>
+          </AnimatePresence>
 
           <div className="grid grid-cols-1 gap-3">
             {QUESTIONS[currentQIndex].options.map((opt, idx) => (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 key={idx}
                 onClick={() => handleNextQuestion(idx)}
                 className="w-full text-left p-4 rounded-card bg-white dark:bg-background border border-black/5 dark:border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all text-sm font-bold text-text-primary flex items-center justify-between group shadow-sm"

@@ -6,6 +6,8 @@ import {
   Sparkles, CheckCircle2, AlertTriangle, Book, Volume2, RefreshCw 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+import { fadeIn } from '../utils/animations';
 
 const Communication = () => {
   const { rewardXp } = useContext(AppContext);
@@ -208,11 +210,17 @@ const Communication = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in pb-12">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      className="space-y-6 pb-12"
+    >
       
       {/* Tabs selector */}
       <div className="bg-background-card border border-black/10 dark:border-white/5 p-1 rounded-badge shadow-card flex space-x-1">
-        <button
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={() => setActiveTab('write')}
           className={`flex-1 py-2.5 rounded-button text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
             activeTab === 'write'
@@ -222,8 +230,9 @@ const Communication = () => {
         >
           <Edit3 size={16} />
           <span>Written Trainer</span>
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={() => setActiveTab('speak')}
           className={`flex-1 py-2.5 rounded-button text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
             activeTab === 'speak'
@@ -233,8 +242,9 @@ const Communication = () => {
         >
           <Mic size={16} />
           <span>Speaking Trainer</span>
-        </button>
-        <button
+        </motion.button>
+        <motion.button
+          whileTap={{ scale: 0.97 }}
           onClick={() => setActiveTab('gd')}
           className={`flex-1 py-2.5 rounded-button text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
             activeTab === 'gd'
@@ -244,7 +254,7 @@ const Communication = () => {
         >
           <Users size={16} />
           <span>GD Simulator</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* SECTION A: WRITTEN EMAIL TRAINER */}
@@ -632,7 +642,7 @@ const Communication = () => {
         </div>
       )}
 
-    </div>
+    </motion.div>
   );
 };
 

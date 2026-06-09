@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
 import api from '../utils/api';
 import { 
@@ -8,6 +8,67 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
+import { staggerContainer, fadeIn, cardHover } from '../utils/animations';
+import { SkeletonCard, SkeletonText } from '../components/common/Skeleton';
+
+// Typing dots "thinking" indicator
+const TypingIndicator = () => (
+  <div className="flex items-center space-x-3 max-w-[85%]">
+    <div className="w-8 h-8 rounded-card bg-primary shrink-0 flex items-center justify-center font-bold text-white text-xs">
+      AI
+    </div>
+    <div className="p-3.5 bg-white dark:bg-background-card border border-black/5 dark:border-white/5 rounded-card rounded-tl-none shadow-card flex items-center space-x-1.5 px-4">
+      {[0, 0.18, 0.36].map((delay, i) => (
+        <motion.span
+          key={i}
+          className="w-2 h-2 rounded-full bg-primary"
+          animate={{ opacity: [0.3, 1, 0.3], y: [0, -4, 0] }}
+          transition={{ duration: 0.8, repeat: Infinity, delay, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+// Animated chat bubble component
+const ChatBubble = ({ log, userInitials }) => (
+  <motion.div
+    initial="hidden"
+    animate="visible"
+    className="space-y-4"
+  >
+    {/* AI question bubble – slides in from left */}
+    <motion.div
+      initial={{ opacity: 0, x: -24 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="flex items-start space-x-3 max-w-[85%]"
+    >
+      <div className="w-8 h-8 rounded-card bg-primary shrink-0 flex items-center justify-center font-bold text-white text-xs">
+        AI
+      </div>
+      <div className="p-3.5 bg-white dark:bg-background-card border border-black/5 dark:border-white/5 rounded-card rounded-tl-none text-xs leading-relaxed text-text-primary shadow-card font-serif">
+        {log.question}
+      </div>
+    </motion.div>
+
+    {/* User answer bubble – slides in from right */}
+    <motion.div
+      initial={{ opacity: 0, x: 24 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.1 }}
+      className="flex items-start justify-end space-x-3 max-w-[85%] ml-auto"
+    >
+      <div className="p-3.5 bg-skyWash text-primary-default dark:bg-skyWash/10 dark:text-blue-400 border border-blue-500/10 dark:border-blue-500/20 rounded-card rounded-tr-none text-xs leading-relaxed font-semibold">
+        {log.user_answer}
+      </div>
+      <div className="w-8 h-8 rounded-full bg-primary/20 shrink-0 flex items-center justify-center font-bold text-primary text-xs uppercase">
+        {userInitials}
+      </div>
+    </motion.div>
+  </motion.div>
+);
 
 const Interview = () => {
   const { user, rewardXp } = useContext(AppContext);
@@ -47,12 +108,22 @@ const Interview = () => {
   const [avgHistoryScore, setAvgHistoryScore] = useState(0);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // Auto-scroll ref for chat area
+  const chatBottomRef = useRef(null);
+
   // Max questions per mock session
   const MAX_QUESTIONS = 5;
 
   useEffect(() => {
     initSpeechRecognition();
   }, []);
+
+  // Auto-scroll to bottom when new messages appear
+  useEffect(() => {
+    if (chatBottomRef.current) {
+      chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory, currentQuestion, submittingAnswer]);
 
   const initSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -218,20 +289,27 @@ const Interview = () => {
   }, [activeTab]);
 
   return (
-    <div className="max-w-4xl mx-auto animate-fade-in pb-12">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeIn}
+      className="max-w-4xl mx-auto pb-12"
+    >
       
       {/* Lobby tab bar */}
       {stage !== 'CHAT' && (
         <div className="bg-background-card border border-black/5 dark:border-white/5 p-2 rounded-button flex space-x-2 mb-6 shadow-card">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.97 }}
             onClick={() => setActiveTab('practice')}
             className={`flex-1 py-3 rounded-button text-xs font-bold transition-all ${
               activeTab === 'practice' ? 'bg-primary text-white shadow-card' : 'text-text-secondary hover:bg-black/5 dark:hover:bg-white/5'
             }`}
           >
             Mock Simulator
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
             onClick={() => setActiveTab('history')}
             className={`flex-1 py-3 rounded-button text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
               activeTab === 'history' ? 'bg-primary text-white shadow-card' : 'text-text-secondary hover:bg-black/5 dark:hover:bg-white/5'
@@ -239,81 +317,91 @@ const Interview = () => {
           >
             <History size={14} />
             <span>Interview Log History</span>
-          </button>
+          </motion.button>
         </div>
       )}
 
       {/* STAGE 1: SETUP PANEL */}
       {stage === 'SETUP' && activeTab === 'practice' && (
-        <div className="bg-background-card border border-black/5 dark:border-white/5 p-6 md:p-8 rounded-card space-y-6 shadow-card">
-          <div className="flex items-center space-x-3 pb-4 border-b border-black/5 dark:border-white/5">
-            <Briefcase size={22} className="text-primary" />
-            <h2 className="text-lg font-serif font-bold text-text-primary">Mock Interview Configurator</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Company */}
-            <div className="space-y-2">
-              <label className="text-xs text-text-secondary font-semibold">Focus Company:</label>
-              <select
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-3 rounded-input text-xs text-text-primary outline-none cursor-pointer font-bold"
-              >
-                {['Cognizant', 'TCS', 'Infosys', 'Wipro', 'Accenture', 'Amazon', 'Google'].map(c => (
-                  <option key={c} value={c} className="bg-background text-text-primary">{c}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Type */}
-            <div className="space-y-2">
-              <label className="text-xs text-text-secondary font-semibold">Interview Format:</label>
-              <select
-                value={interviewType}
-                onChange={(e) => setInterviewType(e.target.value)}
-                className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-3 rounded-input text-xs text-text-primary outline-none cursor-pointer font-bold"
-              >
-                <option value="MIXED" className="bg-background text-text-primary">Mixed HR + Technical</option>
-                <option value="TECHNICAL" className="bg-background text-text-primary">Technical Only</option>
-                <option value="HR" className="bg-background text-text-primary">HR Behavioral Only</option>
-              </select>
-            </div>
-
-            {/* Difficulty */}
-            <div className="space-y-2">
-              <label className="text-xs text-text-secondary font-semibold">Grilling Difficulty:</label>
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value)}
-                className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-3 rounded-input text-xs text-text-primary outline-none cursor-pointer font-bold"
-              >
-                <option value="Easy" className="bg-background text-text-primary">Easy (Fresher Core)</option>
-                <option value="Medium" className="bg-background text-text-primary">Medium (Placement Level)</option>
-                <option value="Hard" className="bg-background text-text-primary">Hard (Strict Grilling)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs text-text-secondary font-semibold">Project Experience Details:</label>
-            <textarea
-              value={projectText}
-              onChange={(e) => setProjectText(e.target.value)}
-              rows={3}
-              placeholder="Specify team contributions, frameworks (e.g. Flask, SQL) so the AI deep-dives..."
-              className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-4 rounded-input text-xs text-text-primary outline-none focus:border-primary transition-all font-serif"
-            />
-          </div>
-
-          {/* Primary CTA (pill shape, Ink bg in light mode) */}
-          <button
-            onClick={handleStartInterview}
-            className="w-full py-4 bg-primary hover:bg-primary/95 text-white font-bold rounded-button text-sm shadow-card transition-transform active:scale-[0.99]"
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div
+            variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } } }}
+            className="bg-background-card border border-black/5 dark:border-white/5 p-6 md:p-8 rounded-card space-y-6 shadow-card"
           >
-            Launch Interview Session
-          </button>
-        </div>
+            <div className="flex items-center space-x-3 pb-4 border-b border-black/5 dark:border-white/5">
+              <Briefcase size={22} className="text-primary" />
+              <h2 className="text-lg font-serif font-bold text-text-primary">Mock Interview Configurator</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Company */}
+              <div className="space-y-2">
+                <label className="text-xs text-text-secondary font-semibold">Focus Company:</label>
+                <select
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-3 rounded-input text-xs text-text-primary outline-none cursor-pointer font-bold"
+                >
+                  {['Cognizant', 'TCS', 'Infosys', 'Wipro', 'Accenture', 'Amazon', 'Google'].map(c => (
+                    <option key={c} value={c} className="bg-background text-text-primary">{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Type */}
+              <div className="space-y-2">
+                <label className="text-xs text-text-secondary font-semibold">Interview Format:</label>
+                <select
+                  value={interviewType}
+                  onChange={(e) => setInterviewType(e.target.value)}
+                  className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-3 rounded-input text-xs text-text-primary outline-none cursor-pointer font-bold"
+                >
+                  <option value="MIXED" className="bg-background text-text-primary">Mixed HR + Technical</option>
+                  <option value="TECHNICAL" className="bg-background text-text-primary">Technical Only</option>
+                  <option value="HR" className="bg-background text-text-primary">HR Behavioral Only</option>
+                </select>
+              </div>
+
+              {/* Difficulty */}
+              <div className="space-y-2">
+                <label className="text-xs text-text-secondary font-semibold">Grilling Difficulty:</label>
+                <select
+                  value={difficulty}
+                  onChange={(e) => setDifficulty(e.target.value)}
+                  className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-3 rounded-input text-xs text-text-primary outline-none cursor-pointer font-bold"
+                >
+                  <option value="Easy" className="bg-background text-text-primary">Easy (Fresher Core)</option>
+                  <option value="Medium" className="bg-background text-text-primary">Medium (Placement Level)</option>
+                  <option value="Hard" className="bg-background text-text-primary">Hard (Strict Grilling)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-text-secondary font-semibold">Project Experience Details:</label>
+              <textarea
+                value={projectText}
+                onChange={(e) => setProjectText(e.target.value)}
+                rows={3}
+                placeholder="Specify team contributions, frameworks (e.g. Flask, SQL) so the AI deep-dives..."
+                className="w-full bg-black/5 dark:bg-background border border-black/5 dark:border-white/5 p-4 rounded-input text-xs text-text-primary outline-none focus:border-primary transition-all font-serif"
+              />
+            </div>
+
+            {/* Primary CTA */}
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={handleStartInterview}
+              className="w-full py-4 bg-primary hover:bg-primary/95 text-white font-bold rounded-button text-sm shadow-card"
+            >
+              Launch Interview Session
+            </motion.button>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* STAGE 2: IMMERSIVE ACTIVE CHAT */}
@@ -328,64 +416,66 @@ const Interview = () => {
             </div>
             
             {/* Audio Toggle */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.92 }}
               onClick={() => setAudioOn(!audioOn)}
               className="p-2 rounded-badge bg-black/5 dark:bg-white/5 text-text-secondary hover:text-text-primary"
               title="Toggle Text to Speech"
             >
               {audioOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
-            </button>
+            </motion.button>
           </div>
 
           {/* Chat Bubble Area */}
           <div className="flex-1 min-h-0 overflow-y-auto my-6 space-y-5 pr-2">
             {chatHistory.map((log, idx) => (
-              <div key={idx} className="space-y-4">
-                {/* Interviewer Question: White Card with Shadow */}
-                <div className="flex items-start space-x-3 max-w-[85%]">
+              <ChatBubble key={idx} log={log} userInitials={user.username.substring(0, 2)} />
+            ))}
+
+            {/* Current Active Interviewer Question: slides in from left */}
+            <AnimatePresence>
+              {currentQuestion && !submittingAnswer && (
+                <motion.div
+                  key={currentQuestion}
+                  initial={{ opacity: 0, x: -24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -16 }}
+                  transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="flex items-start space-x-3 max-w-[85%]"
+                >
                   <div className="w-8 h-8 rounded-card bg-primary shrink-0 flex items-center justify-center font-bold text-white text-xs">
                     AI
                   </div>
                   <div className="p-3.5 bg-white dark:bg-background-card border border-black/5 dark:border-white/5 rounded-card rounded-tl-none text-xs leading-relaxed text-text-primary shadow-card font-serif">
-                    {log.question}
+                    {currentQuestion}
                   </div>
-                </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                {/* Student Answer: Sky Wash bubble */}
-                <div className="flex items-start justify-end space-x-3 max-w-[85%] ml-auto">
-                  <div className="p-3.5 bg-skyWash text-primary-default dark:bg-skyWash/10 dark:text-blue-400 border border-blue-500/10 dark:border-blue-500/20 rounded-card rounded-tr-none text-xs leading-relaxed font-semibold">
-                    {log.user_answer}
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-primary/20 shrink-0 flex items-center justify-center font-bold text-primary text-xs uppercase">
-                    {user.username.substring(0, 2)}
-                  </div>
-                </div>
-              </div>
-            ))}
+            {/* AI Thinking indicator */}
+            <AnimatePresence>
+              {submittingAnswer && (
+                <motion.div
+                  key="typing"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <TypingIndicator />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {/* Current Active Interviewer Question: White Card with Shadow */}
-            {currentQuestion && (
-              <div className="flex items-start space-x-3 max-w-[85%] animate-fade-in">
-                <div className="w-8 h-8 rounded-card bg-primary shrink-0 flex items-center justify-center font-bold text-white text-xs">
-                  AI
-                </div>
-                <div className="p-3.5 bg-white dark:bg-background-card border border-black/5 dark:border-white/5 rounded-card rounded-tl-none text-xs leading-relaxed text-text-primary shadow-card font-serif">
-                  {currentQuestion}
-                </div>
-              </div>
-            )}
-
-            {submittingAnswer && (
-              <div className="flex items-center space-x-2 text-xs text-text-secondary pl-11">
-                <RefreshCw size={12} className="animate-spin text-primary" />
-                <span>AI Mentor is grading response and compiling next question...</span>
-              </div>
-            )}
+            {/* auto-scroll anchor */}
+            <div ref={chatBottomRef} />
           </div>
 
           {/* Input text/mic buttons */}
           <div className="flex items-center space-x-2 bg-black/5 dark:bg-background p-3 rounded-input border border-black/5 dark:border-white/5">
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={handleToggleRecord}
               disabled={submittingAnswer}
               className={`p-2.5 rounded-badge shrink-0 transition-colors ${
@@ -394,7 +484,7 @@ const Interview = () => {
               title="Record voice response"
             >
               <Mic size={16} />
-            </button>
+            </motion.button>
             
             <input
               type="text"
@@ -406,19 +496,20 @@ const Interview = () => {
               className="bg-transparent text-xs text-text-primary outline-none w-full px-2"
             />
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={handleSendAnswer}
               disabled={submittingAnswer || !userInput.trim()}
               className="p-2.5 bg-primary hover:bg-primary/95 text-white rounded-badge disabled:opacity-50 shadow-card"
             >
               <Send size={14} className="fill-white" />
-            </button>
+            </motion.button>
           </div>
 
           {loadingQuestion && (
-            <div className="absolute inset-0 bg-white/95 dark:bg-background/95 flex flex-col items-center justify-center rounded-card text-text-secondary z-50">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mb-3"></div>
-              <p className="text-xs">Connecting to recruitment nodes...</p>
+            <div className="absolute inset-0 bg-white/95 dark:bg-background/95 flex flex-col items-center justify-center rounded-card text-text-secondary z-50 space-y-4">
+              <TypingIndicator />
+              <p className="text-xs pl-11">Connecting to recruitment nodes...</p>
             </div>
           )}
         </div>
@@ -426,7 +517,12 @@ const Interview = () => {
 
       {/* STAGE 3: POST INTERVIEW REPORT CARD */}
       {stage === 'REPORT' && finalReport && (
-        <div className="bg-background-card border border-black/5 dark:border-white/5 p-6 md:p-8 rounded-card shadow-card space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="bg-background-card border border-black/5 dark:border-white/5 p-6 md:p-8 rounded-card shadow-card space-y-6"
+        >
           <div className="text-center pb-4 border-b border-black/5 dark:border-white/5 space-y-1">
             <span className="text-[10px] font-extrabold tracking-widest text-success uppercase">EXAM COMPLETED</span>
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-text-primary">Placement Scorecard Report</h1>
@@ -434,14 +530,24 @@ const Interview = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto text-center font-mono my-4">
-            <div className="bg-black/5 dark:bg-background p-4 rounded-card border border-black/5 dark:border-white/5">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="bg-black/5 dark:bg-background p-4 rounded-card border border-black/5 dark:border-white/5"
+            >
               <span className="text-[9px] text-text-secondary block font-bold uppercase">INTERVIEW GRADE</span>
               <span className="text-2xl font-extrabold text-success mt-1 block font-mono">{finalReport.overallScore}/100</span>
-            </div>
-            <div className="bg-black/5 dark:bg-background p-4 rounded-card border border-black/5 dark:border-white/5">
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.88 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+              className="bg-black/5 dark:bg-background p-4 rounded-card border border-black/5 dark:border-white/5"
+            >
               <span className="text-[9px] text-text-secondary block font-bold uppercase">XP AWARDED</span>
               <span className="text-2xl font-extrabold text-primary mt-1 block font-mono">+{finalReport.xpGained}</span>
-            </div>
+            </motion.div>
           </div>
 
           {/* Question breakdown lists */}
@@ -449,7 +555,13 @@ const Interview = () => {
             <h3 className="font-serif font-bold text-sm text-text-primary">Itemized Transcript Evaluations:</h3>
             <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
               {finalReport.history.map((log, idx) => (
-                <div key={idx} className="p-4 bg-white dark:bg-background p-4 border border-black/5 dark:border-white/5 rounded-card space-y-3 shadow-card">
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.08, duration: 0.35 }}
+                  className="p-4 bg-white dark:bg-background border border-black/5 dark:border-white/5 rounded-card space-y-3 shadow-card"
+                >
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="text-[9px] text-primary font-bold uppercase">Q{idx + 1} Question</span>
@@ -471,7 +583,7 @@ const Interview = () => {
                       "{log.better_answer}"
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -485,19 +597,25 @@ const Interview = () => {
             </div>
           </div>
 
-          {/* Primary CTA (pill shape, Ink bg) */}
-          <button
+          {/* Primary CTA */}
+          <motion.button
+            whileTap={{ scale: 0.98 }}
             onClick={() => setStage('SETUP')}
             className="w-full py-3 bg-primary hover:bg-primary/95 text-white font-bold rounded-button text-xs shadow-card"
           >
             Practice New Company Session
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       )}
 
       {/* STAGE 4: HISTORY VIEW */}
       {activeTab === 'history' && stage !== 'CHAT' && (
-        <div className="bg-background-card border border-black/5 dark:border-white/5 p-6 rounded-card shadow-card space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="bg-background-card border border-black/5 dark:border-white/5 p-6 rounded-card shadow-card space-y-6"
+        >
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-black/5 dark:border-white/5 gap-3">
             <div className="flex items-center space-x-2">
               <History className="text-primary" />
@@ -510,18 +628,30 @@ const Interview = () => {
           </div>
 
           {loadingHistory ? (
-            <div className="flex flex-col items-center justify-center py-12 text-text-secondary">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mb-3"></div>
-              <p className="text-xs">Parsing logs database...</p>
+            <div className="space-y-3">
+              <SkeletonCard className="h-20" />
+              <SkeletonCard className="h-20" />
+              <SkeletonCard className="h-20" />
             </div>
           ) : pastInterviews.length === 0 ? (
             <div className="text-center py-12 text-text-secondary text-sm">
               No mock interviews recorded yet. Start a session to log performance scorecard history!
             </div>
           ) : (
-            <div className="space-y-3">
-              {pastInterviews.map((log) => (
-                <div key={log.id} className="p-4 bg-white dark:bg-background p-4 border border-black/5 dark:border-white/5 rounded-card hover:shadow-md transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-card">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="space-y-3"
+            >
+              {pastInterviews.map((log, idx) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.06, duration: 0.32 }}
+                  className="p-4 bg-white dark:bg-background border border-black/5 dark:border-white/5 rounded-card flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-card"
+                >
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2 text-xs">
                       <span className="font-bold text-primary">{log.company_name}</span>
@@ -543,14 +673,14 @@ const Interview = () => {
                       {log.ai_score}/100 Score
                     </span>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
       )}
 
-    </div>
+    </motion.div>
   );
 };
 

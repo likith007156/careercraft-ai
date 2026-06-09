@@ -29,9 +29,18 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : false; // default to light mode
   });
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
   const toggleDarkMode = () => {
     setDarkMode(prev => !prev);
   };
+
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   useEffect(() => {
     if (darkMode) {
@@ -226,7 +235,9 @@ export const AppProvider = ({ children }) => {
       toggleTimer,
       resetTimer,
       darkMode,
-      toggleDarkMode
+      toggleDarkMode,
+      sidebarCollapsed,
+      setSidebarCollapsed
     }}>
       {children}
     </AppContext.Provider>
