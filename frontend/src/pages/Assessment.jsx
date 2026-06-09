@@ -277,7 +277,7 @@ const Assessment = () => {
               >
                 <span>{opt}</span>
                 <ChevronRight size={16} className="text-text-secondary group-hover:text-primary transition-transform group-hover:translate-x-1" />
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
