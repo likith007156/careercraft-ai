@@ -10,6 +10,7 @@ if parent_dir not in sys.path:
 from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from werkzeug.exceptions import HTTPException
 
 # Load environments
 load_dotenv()
@@ -47,6 +48,15 @@ def add_security_headers(response):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
 
+# Root endpoint
+@app.route('/')
+def index():
+    return jsonify({
+        "status": "online",
+        "message": "CareerCraft AI Backend API is active",
+        "version": "1.0.0"
+    })
+
 # Register blueprints
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(learning_bp)
@@ -57,10 +67,13 @@ app.register_blueprint(progress_bp)
 
 @app.errorhandler(Exception)
 def handle_error(e):
+    code = 500
+    if isinstance(e, HTTPException):
+        code = e.code
     return jsonify({
-        "error": "Something went wrong",
-        "message": str(e)
-    }), 500
+        "error": "Something went wrong" if code == 500 else e.name,
+        "message": str(e.description) if isinstance(e, HTTPException) else str(e)
+    }), code
 
 if __name__ == "__main__":
     debug = os.getenv("FLASK_ENV") == "development"
