@@ -41,7 +41,7 @@ const PageWrapper = ({ children }) => (
 
 // Onboarding route interceptor and layouts
 const MainLayout = ({ children }) => {
-  const { onboarded, loading, sidebarCollapsed } = useContext(AppContext);
+  const { onboarded, loading, backendWaking, sidebarCollapsed } = useContext(AppContext);
   const location = useLocation();
 
   if (loading) {
@@ -51,13 +51,33 @@ const MainLayout = ({ children }) => {
         animate={{ opacity: 1 }}
         className="flex items-center justify-center h-screen bg-background"
       >
-        <div className="flex flex-col items-center space-y-6 max-w-xs w-full px-8">
-          <div className="w-12 h-12 rounded-card bg-primary flex items-center justify-center font-bold text-white text-xl">CC</div>
+        <div className="flex flex-col items-center space-y-6 max-w-xs w-full px-8 text-center">
+          <div className="w-14 h-14 rounded-card bg-primary flex items-center justify-center font-bold text-white text-xl font-serif">CC</div>
           <div className="w-full space-y-3">
-            <SkeletonCard className="h-6 rounded-full" />
+            <SkeletonCard className="h-5 rounded-full" />
             <SkeletonCard className="h-4 rounded-full w-3/4 mx-auto" />
           </div>
-          <p className="text-text-secondary text-xs font-mono animate-pulse">Synchronizing CareerCraft AI Engine...</p>
+          <motion.p
+            key={backendWaking ? 'waking' : 'loading'}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="text-text-secondary text-xs font-mono"
+          >
+            {backendWaking
+              ? '⏳ Waking up backend server... (~20s on first load)'
+              : 'Synchronizing CareerCraft AI Engine...'}
+          </motion.p>
+          {backendWaking && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-[11px] text-text-secondary opacity-60"
+            >
+              Free tier servers sleep after inactivity. This happens only once.
+            </motion.p>
+          )}
         </div>
       </motion.div>
     );

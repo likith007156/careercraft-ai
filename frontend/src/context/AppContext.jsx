@@ -59,18 +59,37 @@ export const AppProvider = ({ children }) => {
     totalFocusMins: 0
   });
 
+  const [backendWaking, setBackendWaking] = useState(false);
+
   const timerRef = useRef(null);
 
   // Fetch initial stats from backend
   const fetchUserData = async () => {
     try {
       setLoading(true);
+      setBackendWaking(false);
+
+      // Show "waking up" message if backend takes > 4 seconds (Render cold start)
+      const wakeTimer = setTimeout(() => setBackendWaking(true), 4000);
+
       const tzOffset = -new Date().getTimezoneOffset() / 60;
-      const res = await api.get(`/dashboard?tz_offset=${tzOffset}`);
-      const data = res.data;
-      
+
+      // Run both calls in parallel with a 55s timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 55000);
+
+      const [dashRes, pathsRes] = await Promise.all([
+        api.get(`/dashboard?tz_offset=${tzOffset}`, { signal: controller.signal }),
+        api.get('/learning/paths', { signal: controller.signal })
+      ]);
+
+      clearTimeout(wakeTimer);
+      clearTimeout(timeoutId);
+      setBackendWaking(false);
+
+      const data = dashRes.data;
       setUser({
-        username: data.greeting.split(', ')[1].replace('!', ''),
+        username: data.greeting.split(', ')[1]?.replace('!', '') || 'Student',
         companyFocus: data.company_focus,
         streak: data.streak,
         readinessScore: data.readiness_score,
@@ -79,16 +98,12 @@ export const AppProvider = ({ children }) => {
         stats: data.stats
       });
 
-      // If user has 0 overall_score and has not studied any topics, check onboarding
-      // We check if they have done the onboarding test
-      const studiedRes = await api.get('/learning/paths');
-      const hasStudied = Object.values(studiedRes.data.syllabus || {}).some(
+      const hasStudied = Object.values(pathsRes.data.syllabus || {}).some(
         (sections) => sections.some(
           (topic) => topic.subtopics.some(sub => sub.completion > 0)
         )
       );
 
-      // Onboarding is required if overall_score is 0 and they haven't completed any topic
       if (data.readiness_score === 0 && !hasStudied) {
         setOnboarded(false);
       } else {
@@ -96,6 +111,9 @@ export const AppProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error loading user progress:", error);
+      setBackendWaking(false);
+      // Still let the app load even if backend is unreachable
+      setOnboarded(true);
     } finally {
       setLoading(false);
     }
@@ -226,6 +244,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider value={{
       user,
       loading,
+      backendWaking,
       onboarded,
       setOnboarded,
       fetchUserData,
