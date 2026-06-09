@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Steep design system colors */
+  --color-ink: #17191c;
+  --color-pure-white: #ffffff;
+  --color-fog: #f7f7f8;
+  --color-ash: #4c4c4c;
+  --color-graphite: #777b86;
+  --color-dove: #a3a6af;
+  --color-rust: #5d2a1a;
+  --color-apricot-wash: #fbe1d1;
+  --color-sky-wash: #d3e3fc;
+
+  /* Semantic mappings for default light mode */
+  --color-bg-default: #ffffff;
+  --color-bg-sidebar: #f7f7f8;
+  --color-bg-card: #ffffff;
+  --color-bg-card-hover: #f7f7f8;
+  
+  --color-text-primary: #17191c;     /* Ink */
+  --color-text-secondary: #777b86;   /* Graphite */
+  
+  --color-primary-default: #17191c;  /* Ink */
+  --color-primary-hover: #4c4c4c;    /* Ash */
+  
+  --color-secondary-default: #5d2a1a; /* Rust */
+  --color-secondary-hover: #777b86;
+  
+  --color-success: #2e7d32;          /* Soft green tint */
+  --color-success-bg: #e8f5e9;
+  
+  --color-warning: #f57c00;
+  --color-warning-bg: #fff3e0;       /* Soft yellow tint */
+  
+  --color-danger: #c62828;           /* Soft red tint */
+  --color-danger-bg: #ffebee;
+  
+  --color-gold: #ffd700;
+  
+  /* Radii */
+  --radius-card: 24px;
+  --radius-button: 9999px;
+  --radius-input: 16px;
+  --radius-image: 12px;
+  --radius-badge: 9999px;
+  
+  /* Shadows */
+  --shadow-card: rgba(4,23,43,0.05) 0px 0px 0px 1px, 
+                 rgba(0,0,0,0.1) 0px 20px 25px -5px, 
+                 rgba(0,0,0,0.1) 0px 8px 10px -6px;
+
+  /* Gradients */
+  --gradient-premium: linear-gradient(135deg, #17191c 0%, #4c4c4c 100%);
+
+  /* Scrollbars */
+  --scrollbar-track: #ffffff;
+  --scrollbar-thumb: #a3a6af;
+  --scrollbar-thumb-hover: #17191c;
+}
+
+.dark {
+  /* Classic Dark mode fallback variables */
+  --color-bg-default: #0f0f1a;
+  --color-bg-sidebar: #121225;
+  --color-bg-card: #1a1a2e;
+  --color-bg-card-hover: #22223f;
+  
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0b0;
+  
+  --color-primary-default: #6c63ff;
+  --color-primary-hover: #574feb;
+  
+  --color-secondary-default: #00d4ff;
+  --color-secondary-hover: #00b0d6;
+  
+  --color-success: #00c851;
+  --color-success-bg: rgba(0, 200, 81, 0.15);
+  
+  --color-warning: #ffbb33;
+  --color-warning-bg: rgba(255, 187, 51, 0.15);
+  
+  --color-danger: #ff4444;
+  --color-danger-bg: rgba(255, 68, 68, 0.15);
+  
+  --color-gold: #ffd700;
+  
+  --radius-card: 24px;
+  --radius-button: 9999px;
+  --radius-input: 16px;
+  --radius-image: 12px;
+  --radius-badge: 9999px;
+
+  /* Shadows for dark mode */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  /* Gradients */
+  --gradient-premium: linear-gradient(135deg, #6c63ff 0%, #00d4ff 100%);
+
+  /* Scrollbars */
+  --scrollbar-track: #0f0f1a;
+  --scrollbar-thumb: #1a1a2e;
+  --scrollbar-thumb-hover: #6c63ff;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-text-primary font-sans antialiased overflow-x-hidden;
+    background-color: var(--color-bg-default);
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Glassmorphism utility */
+.glass {
+  background: var(--color-bg-card);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .glass {
+  background: rgba(26, 26, 46, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Glow effects */
+.glow-primary {
+  box-shadow: var(--shadow-card);
+}
+
+.dark .glow-primary {
+  box-shadow: 0 0 15px rgba(108, 99, 255, 0.2);
+}
+
+.glow-secondary {
+  box-shadow: var(--shadow-card);
+}
+
+.dark .glow-secondary {
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+}
+
+/* Card Flip Animations */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Custom Skeleton loading animation */
+@keyframes skeleton-glow {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.animate-skeleton {
+  animation: skeleton-glow 1.5s ease-in-out infinite;
+}
+
+/* Pomodoro Timer Corner Widget styling */
+.pomodoro-badge {
+  @apply fixed bottom-4 right-4 z-50 rounded-full py-2 px-4 flex items-center space-x-2 shadow-card border border-white/5 transition-all duration-300 hover:scale-105;
+  background-color: var(--color-bg-card);
+  color: var(--color-text-primary);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .pomodoro-badge {
+  background: rgba(26, 26, 46, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}

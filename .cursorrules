@@ -1,0 +1,63 @@
+# Security-First Vibe Coding Rules
+
+| # | Issue | What it covers |
+| --- | --- | --- |
+| 1 | Exposed Secrets | `.env` only, `.gitignore`, no keys in frontend |
+| 2 | Rate Limiting | Per-endpoint limits, 429 responses, recommended libs |
+| 3 | Input Validation | Zod/Pydantic schemas, server-side only, parameterized queries |
+| 4 | Auth & Authorization | No plain-text passwords, JWT best practices, role checks |
+| 5 | SQL Injection | ORM-first, never string concat queries |
+| 6 | CORS | No wildcard `*` in production |
+| 7 | HTTP Security Headers | `helmet`, CSP, HSTS, clickjacking prevention |
+| 8 | File Upload Safety | MIME validation, size limits, UUID renaming |
+| 9 | Error Handling | No stack traces to client, structured logging |
+| 10 | Dependency Security | `npm audit`, pinned versions |
+| 11 | XSS Prevention | No `dangerouslySetInnerHTML`, no `eval()` |
+| 12 | Deploy Checklist | Pre-deploy gate before every ship |
+| 🤖 | AI/LLM Specific | Prompt injection, token budgets, server-side API keys |
+
+---
+
+## 🔐 1. SECRETS & ENVIRONMENT VARIABLES
+
+**Never expose secrets in frontend code.**
+- ALL API keys, tokens, database URLs, service credentials, and private config MUST live in `.env` files only.
+- `.env` files MUST be listed in `.gitignore` — always generate a `.gitignore` that excludes `.env`, `.env.local`, `.env.*.local`.
+- Frontend code must NEVER contain raw secret values.
+
+## 🚦 2. RATE LIMITING
+
+**Every public-facing endpoint must have rate limiting.**
+- Apply rate limiting on ALL API routes, especially auth, form submissions, AI completions, file uploads, and any expensive operation.
+- Default limits:
+    - Auth endpoints (login, register, password reset): **5 requests / 15 minutes per IP**
+    - General API: **60 requests / minute per IP**
+    - AI/LLM proxy endpoints: **10 requests / minute per user**
+- Python/Flask: Use `Flask-Limiter`.
+
+## 🧹 3. INPUT VALIDATION & SANITIZATION
+
+**Never trust user input. Validate and sanitize everything.**
+- Validate ALL inputs on the **server side**.
+- JS/TS: `zod`, `yup`, or `joi`
+- Python: `pydantic`
+- Use parameterized queries / ORM methods — NEVER interpolate user input into raw SQL or NoSQL queries.
+
+## 🛡️ 5. SQL & DATABASE SECURITY
+- Always use parameterized queries or an ORM.
+- Never construct queries via string concatenation with user data.
+
+## 🌐 6. CORS CONFIGURATION
+- Do NOT use wildcard CORS in production. Restrict CORS origins.
+
+## 🪝 7. HTTP SECURITY HEADERS
+- Set security headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`, `Referrer-Policy: strict-origin-when-cross-origin`.
+
+## 🚨 9. ERROR HANDLING & LOGGING
+- Never return stack traces, raw error messages, or internal paths to the client in production.
+- Always return generic error messages to users.
+
+## 🤖 AI/LLM-SPECIFIC RULES
+- Store the API key server-side only.
+- Set `max_tokens` limits.
+- Sanitize and validate all LLM inputs and outputs.
