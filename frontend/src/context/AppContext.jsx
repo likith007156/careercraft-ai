@@ -65,7 +65,8 @@ export const AppProvider = ({ children }) => {
   const fetchUserData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/dashboard');
+      const tzOffset = -new Date().getTimezoneOffset() / 60;
+      const res = await api.get(`/dashboard?tz_offset=${tzOffset}`);
       const data = res.data;
       
       setUser({

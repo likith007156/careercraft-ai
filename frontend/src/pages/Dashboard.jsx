@@ -75,7 +75,8 @@ const Dashboard = () => {
   const fetchDashboard = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
-      const res = await api.get('/dashboard');
+      const tzOffset = -new Date().getTimezoneOffset() / 60; // e.g. IST = +5.5
+      const res = await api.get(`/dashboard?tz_offset=${tzOffset}`);
       setDashboardData(res.data);
     } catch (err) {
       toast.error("Failed to load dashboard metrics.");

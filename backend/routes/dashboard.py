@@ -43,8 +43,12 @@ def get_dashboard_data():
     day_name = today.strftime("%A")
     date_str = today.strftime("%B %d, %Y")
     
-    # Greetings text
-    hour = datetime.datetime.now().hour
+    # Greetings text — use client's local hour if provided, else server UTC
+    try:
+        tz_offset = int(request.args.get("tz_offset", 0))
+    except (ValueError, TypeError):
+        tz_offset = 0
+    hour = (datetime.datetime.utcnow().hour + tz_offset) % 24
     greeting = "Good morning"
     if 12 <= hour < 17:
         greeting = "Good afternoon"
