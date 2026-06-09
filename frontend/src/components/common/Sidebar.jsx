@@ -165,11 +165,15 @@ const Sidebar = () => {
                   )}
                 </NavLink>
 
-                {/* Collapsed Sidebar Tooltip */}
+                {/* Collapsed Sidebar Tooltip — framer-motion */}
                 {collapsed && (
-                  <div className="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-2.5 py-1.5 bg-ink dark:bg-pure-white text-pure-white dark:text-ink text-xs font-semibold rounded-md opacity-0 pointer-events-none group-hover/nav:opacity-100 transition-opacity duration-200 shadow-md whitespace-nowrap z-50">
+                  <motion.div
+                    initial={{ opacity: 0, x: -8 }}
+                    whileHover={{ opacity: 1, x: 0 }}
+                    className="absolute left-full top-1/2 -translate-y-1/2 ml-4 px-2.5 py-1.5 bg-text-primary text-background text-xs font-semibold rounded-md pointer-events-none shadow-md whitespace-nowrap z-50 opacity-0 group-hover/nav:opacity-100 transition-all duration-150"
+                  >
                     {item.name}
-                  </div>
+                  </motion.div>
                 )}
               </motion.div>
             );

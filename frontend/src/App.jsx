@@ -45,12 +45,20 @@ const MainLayout = ({ children }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-background text-white">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="text-text-secondary text-sm">Synchronizing CareerCraft AI Engine...</p>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-center h-screen bg-background"
+      >
+        <div className="flex flex-col items-center space-y-6 max-w-xs w-full px-8">
+          <div className="w-12 h-12 rounded-card bg-primary flex items-center justify-center font-bold text-white text-xl">CC</div>
+          <div className="w-full space-y-3">
+            <SkeletonCard className="h-6 rounded-full" />
+            <SkeletonCard className="h-4 rounded-full w-3/4 mx-auto" />
+          </div>
+          <p className="text-text-secondary text-xs font-mono animate-pulse">Synchronizing CareerCraft AI Engine...</p>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -121,10 +129,22 @@ function App() {
         <Toaster 
           position="top-right"
           toastOptions={{
+            duration: 3500,
             style: {
-              background: '#1a1a2e',
-              color: '#fff',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              background: 'var(--color-bg-card)',
+              color: 'var(--color-text-primary)',
+              border: '1px solid rgba(0,0,0,0.06)',
+              borderRadius: '16px',
+              fontSize: '13px',
+              fontWeight: '600',
+              padding: '12px 16px',
+              boxShadow: 'rgba(4,23,43,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.12) 0px 8px 24px -4px',
+            },
+            success: {
+              iconTheme: { primary: '#2e7d32', secondary: '#fff' },
+            },
+            error: {
+              iconTheme: { primary: '#c62828', secondary: '#fff' },
             },
           }}
         />

@@ -73,3 +73,35 @@ export const shimmer = {
     }
   }
 };
+
+// Slide up from bottom — used by quiz panel, drawers
+export const slideUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', damping: 25, stiffness: 200 }
+  },
+  exit: {
+    opacity: 0,
+    y: 40,
+    transition: { duration: 0.2, ease: 'easeIn' }
+  }
+};
+
+// Spring scale — used for badges, XP floats, checkmarks
+export const springScale = {
+  hidden: { opacity: 0, scale: 0 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 300, damping: 20 }
+  }
+};
+
+// Subtle lift for primary CTAs on hover
+export const buttonHover = {
+  rest: { scale: 1 },
+  hover: { scale: 1.02, transition: { duration: 0.15 } },
+  tap:  { scale: 0.96, transition: { duration: 0.1 } }
+};
