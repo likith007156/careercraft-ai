@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.MODE === 'production'
-  ? 'https://your-backend.onrender.com'
+  ? 'https://careercraft-ai-7l9t.onrender.com'
   : 'http://localhost:5000';
 
 const api = axios.create({
