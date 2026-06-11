@@ -39,10 +39,10 @@ RESOURCES_DATA = {
 
 @progress_bp.route("/api/progress/analytics", methods=["GET"])
 def get_analytics_data():
-    progress = get_user_progress()
-    
     # Recalculate readiness to keep scores updated
     readiness_score = recalculate_readiness()
+    
+    progress = get_user_progress()
     
     # 1. Radar Chart Data (Scores 1-10)
     # Convert database percentage scores (0-100) to 1-10 scale
@@ -70,12 +70,12 @@ def get_analytics_data():
     # Calculate % syllabus complete
     # total syllabus subtopics count = 57
     syllabus_subtopics_count = 57
-    studied_count = len(topics_list)
+    studied_count = len([t for t in topics_list if (t["completion_percentage"] or 0) > 0])
     completion_rate = round((studied_count / syllabus_subtopics_count) * 100, 1) if syllabus_subtopics_count else 0.0
     
     # 5. Streak Calendar (days studied in last year)
     streak_dates = query_db(
-        "SELECT DISTINCT date_learned FROM topics_learned UNION SELECT DISTINCT date_taken FROM quiz_history"
+        "SELECT DISTINCT date_learned FROM topics_learned WHERE completion_percentage > 0 UNION SELECT DISTINCT date_taken FROM quiz_history"
     )
     streak_days = [row["date_learned"] for row in streak_dates if row["date_learned"]]
     

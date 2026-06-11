@@ -32,7 +32,7 @@ export default class ErrorBoundary extends Component {
           <div style={{ fontSize: '14px', color: '#777b86', maxWidth: '320px', lineHeight: 1.6 }}>
             Something went wrong. Your progress is saved. Please refresh the page.
           </div>
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {import.meta.env.DEV && this.state.error && (
             <pre style={{
               fontSize: '11px', color: '#c62828', background: '#ffebee',
               padding: '12px', borderRadius: '8px', maxWidth: '480px',

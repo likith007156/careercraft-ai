@@ -38,7 +38,7 @@ def get_claude_response(prompt, system_prompt="You are a helpful IT career mento
             system_prompt += " You must respond strictly with a valid JSON object. Do not include markdown code blocks (like ```json ... ```) in your response, just the raw JSON text."
         
         response = client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-3-5-sonnet-latest",
             max_tokens=4000,
             system=system_prompt,
             messages=messages,

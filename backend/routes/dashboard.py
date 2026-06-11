@@ -33,10 +33,11 @@ def save_settings(settings):
 @dashboard_bp.route("/api/dashboard", methods=["GET"])
 def get_dashboard_data():
     settings = get_settings()
-    progress = get_user_progress()
     
     # Update streak daily
     streak_count = update_streak()
+    
+    progress = get_user_progress()
     
     # Format today's date & day
     today = datetime.date.today()
