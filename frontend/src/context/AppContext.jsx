@@ -35,7 +35,7 @@ export const AppProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [onboarded, setOnboarded] = useState(() => {
     const cached = localStorage.getItem('onboarded');
-    return cached ? JSON.parse(cached) : true;
+    return cached ? JSON.parse(cached) : false;
   });
   
   // Dark mode state
