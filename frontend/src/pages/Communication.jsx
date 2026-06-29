@@ -60,23 +60,36 @@ const Communication = () => {
     }
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.lang = 'en-US';
 
     recognition.onresult = (event) => {
-      const transcript = Array.from(event.results)
-        .map(result => result[0])
-        .map(result => result.transcript)
-        .join('');
-      setSpeechText(prev => (prev + ' ' + transcript).trim());
+      let finalTranscript = '';
+      let interimTranscript = '';
+      for (let i = 0; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      setSpeechText((finalTranscript + interimTranscript).trim());
     };
 
     recognition.onerror = (event) => {
       console.error("Speech Recognition Error:", event.error);
+      let errorMsg = "Speech recognition error occurred.";
       if (event.error === 'not-allowed') {
-        toast.error("Microphone access blocked. Please enable browser permissions.");
-        setIsRecording(false);
+        errorMsg = "Microphone access blocked. Please enable browser permissions.";
+      } else if (event.error === 'no-speech') {
+        errorMsg = "No speech was detected. Try speaking closer to the microphone.";
+      } else if (event.error === 'audio-capture') {
+        errorMsg = "No microphone was found or audio capture failed.";
+      } else if (event.error === 'network') {
+        errorMsg = "Network error. Speech recognition requires an internet connection.";
       }
+      toast.error(errorMsg);
+      setIsRecording(false);
     };
 
     recognition.onend = () => {
@@ -121,7 +134,11 @@ const Communication = () => {
     }
 
     if (isRecording) {
-      recognitionInstance.stop();
+      try {
+        recognitionInstance.stop();
+      } catch (err) {
+        console.error("Failed to stop SpeechRecognition:", err);
+      }
       setIsRecording(false);
       toast.success("Recording complete. Speech converted to text!");
     } else {
@@ -132,7 +149,9 @@ const Communication = () => {
         setIsRecording(true);
         toast.success("Microphone active. Speak now...");
       } catch (err) {
-        console.error(err);
+        console.error("Failed to start SpeechRecognition:", err);
+        toast.error("Could not activate microphone. It may already be in use.");
+        setIsRecording(false);
       }
     }
   };

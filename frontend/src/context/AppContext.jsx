@@ -4,8 +4,16 @@ import toast from 'react-hot-toast';
 
 export const AppContext = createContext();
 
-export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState({
+const getInitialUser = () => {
+  const cached = localStorage.getItem('userData');
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch {
+      // fall through to defaults
+    }
+  }
+  return {
     username: 'Kiran',
     companyFocus: 'Cognizant',
     streak: 0,
@@ -18,10 +26,17 @@ export const AppProvider = ({ children }) => {
       streak_days: 0,
       total_xp: 0
     }
-  });
+  };
+};
+
+export const AppProvider = ({ children }) => {
+  const [user, setUser] = useState(getInitialUser);
 
   const [loading, setLoading] = useState(true);
-  const [onboarded, setOnboarded] = useState(true); // Default true, checking DB/local storage
+  const [onboarded, setOnboarded] = useState(() => {
+    const cached = localStorage.getItem('onboarded');
+    return cached ? JSON.parse(cached) : true;
+  });
   
   // Dark mode state
   const [darkMode, setDarkMode] = useState(() => {
@@ -88,7 +103,7 @@ export const AppProvider = ({ children }) => {
       setBackendWaking(false);
 
       const data = dashRes.data;
-      setUser({
+      const userData = {
         username: data.greeting.split(', ')[1]?.replace('!', '') || 'Student',
         companyFocus: data.company_focus,
         streak: data.streak,
@@ -96,7 +111,9 @@ export const AppProvider = ({ children }) => {
         level: data.level,
         totalXp: data.total_xp,
         stats: data.stats
-      });
+      };
+      setUser(userData);
+      localStorage.setItem('userData', JSON.stringify(userData));
 
       const hasStudied = Object.values(pathsRes.data.syllabus || {}).some(
         (sections) => sections.some(
@@ -106,14 +123,17 @@ export const AppProvider = ({ children }) => {
 
       if (data.readiness_score === 0 && !hasStudied) {
         setOnboarded(false);
+        localStorage.setItem('onboarded', JSON.stringify(false));
       } else {
         setOnboarded(true);
+        localStorage.setItem('onboarded', JSON.stringify(true));
       }
     } catch (error) {
       console.error("Error loading user progress:", error);
       setBackendWaking(false);
       // Still let the app load even if backend is unreachable
       setOnboarded(true);
+      localStorage.setItem('onboarded', JSON.stringify(true));
     } finally {
       setLoading(false);
     }
@@ -127,7 +147,11 @@ export const AppProvider = ({ children }) => {
   const updateCompanyFocus = async (company) => {
     try {
       await api.post('/dashboard/company', { company_focus: company });
-      setUser(prev => ({ ...prev, companyFocus: company }));
+      setUser(prev => {
+        const updated = { ...prev, companyFocus: company };
+        localStorage.setItem('userData', JSON.stringify(updated));
+        return updated;
+      });
       toast.success(`Active focus company changed to ${company}!`);
     } catch (error) {
       toast.error("Failed to update company focus.");
@@ -138,7 +162,11 @@ export const AppProvider = ({ children }) => {
   const updateUsername = async (name) => {
     try {
       await api.post('/dashboard/name', { username: name });
-      setUser(prev => ({ ...prev, username: name }));
+      setUser(prev => {
+        const updated = { ...prev, username: name };
+        localStorage.setItem('userData', JSON.stringify(updated));
+        return updated;
+      });
       toast.success("Name updated successfully!");
     } catch (error) {
       toast.error("Failed to update name.");
@@ -156,11 +184,13 @@ export const AppProvider = ({ children }) => {
         if (newXp >= brackets[i]) newLevel = i + 2;
         else break;
       }
-      return {
+      const updated = {
         ...prev,
         totalXp: newXp,
         level: Math.min(10, newLevel)
       };
+      localStorage.setItem('userData', JSON.stringify(updated));
+      return updated;
     });
   };
 
@@ -240,13 +270,18 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const setOnboardedPersisted = (value) => {
+    setOnboarded(value);
+    localStorage.setItem('onboarded', JSON.stringify(value));
+  };
+
   return (
     <AppContext.Provider value={{
       user,
       loading,
       backendWaking,
       onboarded,
-      setOnboarded,
+      setOnboarded: setOnboardedPersisted,
       fetchUserData,
       updateCompanyFocus,
       updateUsername,

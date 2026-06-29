@@ -129,18 +129,39 @@ const Interview = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
     const rec = new SpeechRecognition();
-    rec.continuous = false;
-    rec.interimResults = false;
+    rec.continuous = true;
+    rec.interimResults = true;
     rec.lang = 'en-US';
 
     rec.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      setUserInput(prev => (prev + ' ' + text).trim());
+      let finalTranscript = '';
+      let interimTranscript = '';
+      for (let i = 0; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      setUserInput((finalTranscript + interimTranscript).trim());
     };
-    rec.onerror = (e) => {
-      console.error(e);
+    
+    rec.onerror = (event) => {
+      console.error("Speech Recognition Error:", event.error);
+      let errorMsg = "Speech recognition error occurred.";
+      if (event.error === 'not-allowed') {
+        errorMsg = "Microphone access blocked. Please enable browser permissions.";
+      } else if (event.error === 'no-speech') {
+        errorMsg = "No speech was detected. Try speaking closer to the microphone.";
+      } else if (event.error === 'audio-capture') {
+        errorMsg = "No microphone was found or audio capture failed.";
+      } else if (event.error === 'network') {
+        errorMsg = "Network error. Speech recognition requires an internet connection.";
+      }
+      toast.error(errorMsg);
       setIsRecording(false);
     };
+    
     rec.onend = () => {
       setIsRecording(false);
     };
@@ -188,7 +209,12 @@ const Interview = () => {
       return;
     }
     if (isRecording) {
-      recognitionInstance.stop();
+      try {
+        recognitionInstance.stop();
+      } catch (err) {
+        console.error("Failed to stop SpeechRecognition:", err);
+      }
+      setIsRecording(false);
     } else {
       setUserInput('');
       try {
@@ -196,7 +222,9 @@ const Interview = () => {
         setIsRecording(true);
         toast.success("Listening to your voice...");
       } catch (err) {
-        console.error(err);
+        console.error("Failed to start SpeechRecognition:", err);
+        toast.error("Could not activate microphone. It may already be in use.");
+        setIsRecording(false);
       }
     }
   };
