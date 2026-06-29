@@ -374,3 +374,20 @@ def submit_assessment():
         "overall_score": overall
     })
 
+@progress_bp.route("/api/progress/reset", methods=["POST"])
+def reset_progress():
+    """Clears all user data so the assessment can be retaken from scratch."""
+    tables = [
+        "user_progress",
+        "daily_tasks",
+        "topics_learned",
+        "quiz_history",
+        "mock_interviews",
+        "flaws_detected",
+        "user_notes",
+        "flashcards"
+    ]
+    for table in tables:
+        execute_db(f"DELETE FROM {table}")
+    return jsonify({"success": True, "message": "All progress reset. Ready for new assessment."})
+

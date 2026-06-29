@@ -275,6 +275,30 @@ export const AppProvider = ({ children }) => {
     localStorage.setItem('onboarded', JSON.stringify(value));
   };
 
+  // Logout: clear all progress and restart from assessment
+  const logout = async () => {
+    try {
+      await api.post('/progress/reset');
+    } catch (err) {
+      console.error('Backend reset failed (non-critical):', err);
+    }
+    localStorage.removeItem('userData');
+    localStorage.removeItem('onboarded');
+    localStorage.removeItem('darkMode');
+    localStorage.removeItem('sidebarCollapsed');
+    setUser({
+      username: 'Student',
+      companyFocus: 'Cognizant',
+      streak: 0,
+      readinessScore: 0,
+      level: 1,
+      totalXp: 0,
+      stats: { mastered_count: 0, quiz_average: 0.0, streak_days: 0, total_xp: 0 }
+    });
+    setOnboarded(false);
+    setLoading(false);
+  };
+
   return (
     <AppContext.Provider value={{
       user,
@@ -286,6 +310,7 @@ export const AppProvider = ({ children }) => {
       updateCompanyFocus,
       updateUsername,
       rewardXp,
+      logout,
       pomodoro,
       toggleTimer,
       resetTimer,

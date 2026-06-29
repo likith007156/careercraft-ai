@@ -6,11 +6,11 @@ import {
   LayoutDashboard, BookOpen, Brain, Code2, 
   MessageSquare, Mic, Star, BarChart3, 
   Library, Edit3, ChevronLeft, ChevronRight,
-  Sun, Moon
+  Sun, Moon, LogOut
 } from 'lucide-react';
 
 const Sidebar = () => {
-  const { user, darkMode, toggleDarkMode, sidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed } = useContext(AppContext);
+  const { user, darkMode, toggleDarkMode, logout, sidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed } = useContext(AppContext);
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -216,6 +216,29 @@ const Sidebar = () => {
             </div>
           )}
         </div>
+
+        {/* Logout Button */}
+        <div className="px-4 pb-4">
+          {!collapsed ? (
+            <button
+              onClick={() => { if (window.confirm('Reset all progress and retake the skill assessment?')) logout(); }}
+              className="w-full py-2 px-3 bg-danger/10 hover:bg-danger/20 rounded-button text-danger font-bold text-xs flex items-center justify-center space-x-2 transition-all border border-danger/20 cursor-pointer"
+            >
+              <LogOut size={14} />
+              <span>Reset & Retake Assessment</span>
+            </button>
+          ) : (
+            <div className="flex justify-center">
+              <button 
+                onClick={() => { if (window.confirm('Reset all progress and retake the skill assessment?')) logout(); }}
+                title="Reset & Retake Assessment"
+                className="p-2 rounded-full hover:bg-danger/10 text-text-secondary hover:text-danger cursor-pointer"
+              >
+                <LogOut size={18} />
+              </button>
+            </div>
+          )}
+        </div>
       </motion.aside>
 
       {/* Mobile Bottom Navigation Bar (Stays functional/responsive) */}
@@ -243,6 +266,13 @@ const Sidebar = () => {
         >
           {darkMode ? <Sun size={20} className="text-amber-500" /> : <Moon size={20} className="text-blue-500" />}
           <span className="mt-1">Theme</span>
+        </button>
+        <button
+          onClick={() => { if (window.confirm('Reset all progress and retake the skill assessment?')) logout(); }}
+          className="flex flex-col items-center py-1 px-3 rounded-md text-[10px] font-medium text-text-secondary hover:text-danger transition-colors cursor-pointer"
+        >
+          <LogOut size={20} />
+          <span className="mt-1">Reset</span>
         </button>
       </nav>
     </>
